@@ -3,30 +3,35 @@
   <head>
     <title>Canvas fingerprinting demo</title>
     <meta charset="utf8"/>
+    <link rel="icon" href="data:,">
   </head>
   <body>
-    <canvas id="canvas"></canvas>
+    <div><canvas id="canvas1"></canvas><div id="result1"></div></div>
+    <div><canvas id="canvas2"></canvas><div id="result2"></div></div>
     <script src="canvas.js"></script>
     <script>
-    (async () => {
-      const canvas = document.getElementById("canvas");
-      const context = canvas.getContext("2d");
-	const blackData = makeBlackImage(canvas, context).data;
-	const textData = makeTextImage(canvas, context).data;
-	const n = blackData.length;
-	const resultData = new Uint8ClampedArray(n);
-	for (let i = 0; i < n; ++i) {
-	    resultData[i] = blackData[i] ^ textData[i];
-	}
-	console.log("blackData:", blackData);
-	console.log("textData:", textData);
-	console.log("resultData", resultData);
-	for (let i = 0; i < n; ++i) {
-	    if (blackData[i] !== 0) {
-		console.log(i, blackData[i]);
-	    }
-	}
-    })();
+     const getMedianImageHex = async (canvas, context, drawFunction) => {
+       const images = perturbedImages(canvas, context, drawFunction, 15);
+       const result = medianImage(images);
+       console.log({images, result});
+       const imageHexes = await Promise.all(images.map(sha256hex));
+       const resultHex = await sha256hex(result);
+       console.log({imageHexes, resultHex});
+       return resultHex;
+     };
+
+     const main = async () => {
+       const canvas1 = document.getElementById("canvas1");
+       const context1 = canvas1.getContext("2d");
+       const textHex = await getMedianImageHex(canvas1, context1, drawTextImage);
+       const canvas2 = document.getElementById("canvas2");
+       const context2 = canvas2.getContext("2d");
+       const geometryHex = await getMedianImageHex(canvas2, context2, drawGeometryImage);
+       document.getElementById("result1").innerText = textHex;
+       document.getElementById("result2").innerText = geometryHex;
+     };
+
+     main();
     </script>
   </body>
 </html>
