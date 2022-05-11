@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Canvas fingerprinting demo</title>
+    <meta charset="utf8"/>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="canvas.js"></script>
+    <script>
+    (async () => {
+      const canvas = document.getElementById("canvas");
+      const context = canvas.getContext("2d");
+	const blackData = makeBlackImage(canvas, context).data;
+	const textData = makeTextImage(canvas, context).data;
+	const n = blackData.length;
+	const resultData = new Uint8ClampedArray(n);
+	for (let i = 0; i < n; ++i) {
+	    resultData[i] = blackData[i] ^ textData[i];
+	}
+	console.log("blackData:", blackData);
+	console.log("textData:", textData);
+	console.log("resultData", resultData);
+	for (let i = 0; i < n; ++i) {
+	    if (blackData[i] !== 0) {
+		console.log(i, blackData[i]);
+	    }
+	}
+    })();
+    </script>
+  </body>
+</html>
