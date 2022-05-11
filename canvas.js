@@ -78,28 +78,35 @@ const sha256hex = async (data) => {
 
 const allEqual = arr => arr.every(val => val === arr[0]);
 
-const median = (arr) => {
-  arr.sort((a,b) => a - b);
-  const middleIndex = Math.floor(arr.length / 2);
-  if (arr.length % 2 === 1) {
-    return arr[middleIndex];
-  } else {
-    return (arr[middleIndex-1] + arr[middleIndex]) / 2;
+const mode = (arr) => {
+  const counts = new Map();
+  const n = arr.length;
+  for (let i = 0; i < n; ++i) {
+    const val = arr[i];
+    const prevCount = counts.get(val) ?? 0;
+    counts.set(val, prevCount + 1);
   }
+  let bestCount = -1;
+  let bestVal = undefined;
+  for (let val of counts.keys()) {
+    const count = counts.get(val);
+    if (count > bestCount) {
+      bestVal = val;
+      bestCount = count;
+    }
+  }
+  return bestVal;
 };
 
 const getImageDataArray = (canvas, context) => {
   return context.getImageData(0, 0, canvas.width, canvas.height).data;
 };
 
-var raw_global;
-
 const getRawImageHex = async (wrapper, drawFunction) => {
   const canvas = wrapper.appendChild(document.createElement("canvas"));
   const context = canvas.getContext("2d");
   drawFunction(canvas, context);
-  let imageData = getImageDataArray(canvas, context);
-  raw_global = imageData;
+  const imageData = getImageDataArray(canvas, context);
   const hexData = await sha256hex(imageData);
   return hexData;
 };
@@ -118,7 +125,7 @@ const perturbedImages = async (wrapper, drawFunction, n) => {
   return images;
 };
 
-const medianImage = (images) => {
+const consensusImage = (images) => {
   const n = images[0].length;
   const result = new Uint8ClampedArray(n);
   for (let i = 0; i < n; ++i) {
@@ -126,25 +133,17 @@ const medianImage = (images) => {
     if (allEqual(pixelValues)) {
       result[i] = pixelValues[0];
     } else {
-      result[i] = median(pixelValues);
+      result[i] = mode(pixelValues);
     }
   }
   return result;
 };
 
-const getMedianImageHex = async (wrapper, drawFunction) => {
+const getConsensusImageHex = async (wrapper, drawFunction) => {
   const images = await perturbedImages(wrapper, drawFunction, 15);
-  const result = medianImage(images);
-  const n = result.length;
-  let count = 0;
-  for (let i = 0; i < n; ++i) {
-    if (raw_global[i] !== result[i]) {
-      ++count;
-    }
-  }
-  console.log({images, result});
   const imageHexes = await Promise.all(images.map(sha256hex));
+  const result = consensusImage(images);
   const resultHex = await sha256hex(result);
-  console.log({imageHexes, resultHex});
+  console.log({images, imageHexes, result, resultHex});
   return resultHex;
 };

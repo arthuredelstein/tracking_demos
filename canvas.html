@@ -24,7 +24,7 @@
        const [wrapper1, resultDiv1] = createCanvasWrapper();
        resultDiv1.innerText = "raw: " + await getRawImageHex(wrapper1, drawFunction);
        const [wrapper2, resultDiv2] = createCanvasWrapper();
-       resultDiv2.innerText = "median: "  + await getMedianImageHex(wrapper2, drawFunction);
+       resultDiv2.innerText = "consensus: "  + await getConsensusImageHex(wrapper2, drawFunction);
      };
 
      const main = async () => {
