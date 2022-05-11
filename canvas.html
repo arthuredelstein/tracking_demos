@@ -6,29 +6,30 @@
     <link rel="icon" href="data:,">
   </head>
   <body>
-    <div><canvas id="canvas1"></canvas><div id="result1"></div></div>
-    <div><canvas id="canvas2"></canvas><div id="result2"></div></div>
     <script src="canvas.js"></script>
     <script>
-     const getMedianImageHex = async (canvas, context, drawFunction) => {
-       const images = perturbedImages(canvas, context, drawFunction, 15);
-       const result = medianImage(images);
-       console.log({images, result});
-       const imageHexes = await Promise.all(images.map(sha256hex));
-       const resultHex = await sha256hex(result);
-       console.log({imageHexes, resultHex});
-       return resultHex;
+
+     const createCanvasWrapper = () => {
+       const parent = document.createElement("div");
+       document.body.appendChild(parent);
+       parent.style.margin = "50px";
+       const wrapper = document.createElement("div");
+       parent.appendChild(wrapper);
+       const resultDiv = document.createElement("div");
+       parent.appendChild(resultDiv);
+       return [wrapper, resultDiv];
+     };
+
+     const runTest = async (drawFunction) => {
+       const [wrapper1, resultDiv1] = createCanvasWrapper();
+       resultDiv1.innerText = "raw: " + await getRawImageHex(wrapper1, drawFunction);
+       const [wrapper2, resultDiv2] = createCanvasWrapper();
+       resultDiv2.innerText = "median: "  + await getMedianImageHex(wrapper2, drawFunction);
      };
 
      const main = async () => {
-       const canvas1 = document.getElementById("canvas1");
-       const context1 = canvas1.getContext("2d");
-       const textHex = await getMedianImageHex(canvas1, context1, drawTextImage);
-       const canvas2 = document.getElementById("canvas2");
-       const context2 = canvas2.getContext("2d");
-       const geometryHex = await getMedianImageHex(canvas2, context2, drawGeometryImage);
-       document.getElementById("result1").innerText = textHex;
-       document.getElementById("result2").innerText = geometryHex;
+       await runTest(drawTextImage);
+       await runTest(drawGeometryImage);
      };
 
      main();

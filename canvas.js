@@ -63,7 +63,7 @@ const drawPixel = (context, x, y, color) => {
 const drawPixels = (canvas, context, pixels) => {
   canvas.width = 240;
   canvas.height = 60;
-  const imgData = new ImageData(pixels, canvas.width, canvas.height, {colorSpace: "srgb"});
+  const imgData = new ImageData(pixels, canvas.width, canvas.height);
   context.putImageData(imgData, 0, 0);
   return save(canvas);
 };
@@ -88,21 +88,39 @@ const median = (arr) => {
   }
 };
 
-const perturbedImages = (canvas, context, drawFunction, n) => {
+const getImageDataArray = (canvas, context) => {
+  return context.getImageData(0, 0, canvas.width, canvas.height).data;
+};
+
+var raw_global;
+
+const getRawImageHex = async (wrapper, drawFunction) => {
+  const canvas = wrapper.appendChild(document.createElement("canvas"));
+  const context = canvas.getContext("2d");
+  drawFunction(canvas, context);
+  let imageData = getImageDataArray(canvas, context);
+  raw_global = imageData;
+  const hexData = await sha256hex(imageData);
+  return hexData;
+};
+
+const perturbedImages = async (wrapper, drawFunction, n) => {
   let images = [];
   for (let i = 0; i < n; ++i) {
+    const canvas = wrapper.appendChild(document.createElement("canvas"));
+    const context = canvas.getContext("2d");
     drawFunction(canvas, context);
     const value = Math.floor(Math.random() * 256);
-    drawPixel(context, i, 0, `rgba(${value}, 0, 0, 1)`);
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    images.push(imageData.data);
+    drawPixel(context, 0, i, `rgba(${value}, 0, 0, 1)`);
+    const dataArray = getImageDataArray(canvas, context);
+    images.push(dataArray);
   }
   return images;
 };
 
 const medianImage = (images) => {
   const n = images[0].length;
-  const result = new Uint8Array(n);
+  const result = new Uint8ClampedArray(n);
   for (let i = 0; i < n; ++i) {
     const pixelValues = images.map(image => image[i]);
     if (allEqual(pixelValues)) {
@@ -112,4 +130,21 @@ const medianImage = (images) => {
     }
   }
   return result;
+};
+
+const getMedianImageHex = async (wrapper, drawFunction) => {
+  const images = await perturbedImages(wrapper, drawFunction, 15);
+  const result = medianImage(images);
+  const n = result.length;
+  let count = 0;
+  for (let i = 0; i < n; ++i) {
+    if (raw_global[i] !== result[i]) {
+      ++count;
+    }
+  }
+  console.log({images, result});
+  const imageHexes = await Promise.all(images.map(sha256hex));
+  const resultHex = await sha256hex(result);
+  console.log({imageHexes, resultHex});
+  return resultHex;
 };
