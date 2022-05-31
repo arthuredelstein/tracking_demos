@@ -3,30 +3,36 @@
   <head>
     <title>Canvas fingerprinting demo</title>
     <meta charset="utf8"/>
+    <link rel="icon" href="data:,">
   </head>
   <body>
-    <canvas id="canvas"></canvas>
     <script src="canvas.js"></script>
     <script>
-    (async () => {
-      const canvas = document.getElementById("canvas");
-      const context = canvas.getContext("2d");
-	const blackData = makeBlackImage(canvas, context).data;
-	const textData = makeTextImage(canvas, context).data;
-	const n = blackData.length;
-	const resultData = new Uint8ClampedArray(n);
-	for (let i = 0; i < n; ++i) {
-	    resultData[i] = blackData[i] ^ textData[i];
-	}
-	console.log("blackData:", blackData);
-	console.log("textData:", textData);
-	console.log("resultData", resultData);
-	for (let i = 0; i < n; ++i) {
-	    if (blackData[i] !== 0) {
-		console.log(i, blackData[i]);
-	    }
-	}
-    })();
+
+     const createCanvasWrapper = () => {
+       const parent = document.createElement("div");
+       document.body.appendChild(parent);
+       parent.style.margin = "50px";
+       const wrapper = document.createElement("div");
+       parent.appendChild(wrapper);
+       const resultDiv = document.createElement("div");
+       parent.appendChild(resultDiv);
+       return [wrapper, resultDiv];
+     };
+
+     const runTest = async (drawFunction) => {
+       const [wrapper1, resultDiv1] = createCanvasWrapper();
+       resultDiv1.innerText = "raw: " + await getRawImageHex(wrapper1, drawFunction);
+       const [wrapper2, resultDiv2] = createCanvasWrapper();
+       resultDiv2.innerText = "consensus: "  + await getConsensusImageHex(wrapper2, drawFunction);
+     };
+
+     const main = async () => {
+       await runTest(drawTextImage);
+       await runTest(drawGeometryImage);
+     };
+
+     main();
     </script>
   </body>
 </html>
