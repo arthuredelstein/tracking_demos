@@ -3,14 +3,15 @@ const apis = [
     "window.screenY",
     "window.outerWidth",
     "window.outerHeight",
-    "window.outerWidth - window.innerWidth",
-    "window.outerHeight - window.innerHeight",
+    "window.outerWidth - window.innerWidth /* sidebar width */",
+    "window.outerHeight - window.innerHeight /* browser chrome height */",
     "window.screen.width",
     "window.screen.height",
     "window.screen.availWidth",
     "window.screen.availHeight",
     "window.screen.availLeft",
-    "window.screen.availHeight",
+    "window.screen.availTop /* menu bar */",
+    "window.screen.height - window.screen.availHeight /* menu/task bar */",
     "window.screen.isExtended",
 ];
 
@@ -42,8 +43,8 @@ document.addEventListener("mousemove", e => {
     console.log(e);
     result += `mouseEvent.screenX: ${e.screenX}\n`;
     result += `mouseEvent.screenY: ${e.screenY}\n`;
-    result += `mouseEvent.screenX - mouseEvent.clientX - (window.outerWidth - window.innerWidth): ${e.screenX - e.clientX - (outerWidth - innerWidth)}\n`;
-    result += `mouseEvent.screenY - mouseEvent.clientY - (window.outerHeight - window.innerHeight): ${e.screenY - e.clientY - (outerHeight - innerHeight)}\n`;
+    result += `mouseEvent.screenX - mouseEvent.clientX - (window.outerWidth - window.innerWidth) /* = screenX */: ${e.screenX - e.clientX - (outerWidth - innerWidth)}\n`;
+    result += `mouseEvent.screenY - mouseEvent.clientY - (window.outerHeight - window.innerHeight) /* = screenY */: ${e.screenY - e.clientY - (outerHeight - innerHeight)}\n`;
     resultDiv.innerText = result;
 }, { once: true} ); 
 
