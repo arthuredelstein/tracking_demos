@@ -27,7 +27,6 @@ const find = (min, max, feature) => {
 	return min;
     }
     const mid = Math.ceil((max + min)/2);
-    console.log(min, mid, max, lessThan(feature, mid));
     return lessThan(feature, mid) ?
 	find(min, mid - 1, feature) : find(mid, max, feature);
 };
@@ -40,13 +39,9 @@ resultDiv.innerText = result;
 
 
 document.addEventListener("mousemove", e => {
-    console.log(e);
     result += `mouseEvent.screenX: ${e.screenX}\n`;
     result += `mouseEvent.screenY: ${e.screenY}\n`;
     result += `mouseEvent.screenX - mouseEvent.clientX - (window.outerWidth - window.innerWidth) /* = screenX */: ${e.screenX - e.clientX - (outerWidth - innerWidth)}\n`;
     result += `mouseEvent.screenY - mouseEvent.clientY - (window.outerHeight - window.innerHeight) /* = screenY */: ${e.screenY - e.clientY - (outerHeight - innerHeight)}\n`;
     resultDiv.innerText = result;
 }, { once: true} ); 
-
-
-console.log("done");
