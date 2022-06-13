@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <title>window.name tester</title>
+    <meta charset="utf8"/>
+    <link rel="icon" href="data:,">
+  </head>
+  <body>
+    <script>
+     console.log(`read window.name: '${window.name}'`);
+     window.name = Math.random().toString().slice(2);
+     console.log(`wrote window name: '${window.name}'`);
+    </script>
+  </body>
+</html>
