@@ -41,7 +41,7 @@ resultDiv.innerText = result;
 document.addEventListener("mousemove", e => {
     result += `mouseEvent.screenX: ${e.screenX}\n`;
     result += `mouseEvent.screenY: ${e.screenY}\n`;
-    result += `mouseEvent.screenX - mouseEvent.clientX: ${e.screenX - devicePixelRatio * e.clientX}\n`;
-    result += `mouseEvent.screenY - mouseEvent.clientY: ${e.screenY - devicePixelRatio * e.clientY}\n`;
+    result += `mouseEvent.screenX - devicePixelRatio * mouseEvent.clientX: ${e.screenX - devicePixelRatio * e.clientX}\n`;
+    result += `mouseEvent.screenY - devicePixelRatio * mouseEvent.clientY: ${e.screenY - devicePixelRatio * e.clientY}\n`;
     resultDiv.innerText = result;
 }, { once: true} ); 
