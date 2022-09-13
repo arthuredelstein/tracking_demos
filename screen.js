@@ -1,10 +1,11 @@
 const apis = [
+  "devicePixelRatio",
   "window.screenX",
   "window.screenY",
   "window.outerWidth",
   "window.outerHeight",
-  "window.outerWidth - window.innerWidth /* sidebar width */",
-  "window.outerHeight - window.innerHeight /* browser chrome height */",
+  "window.outerWidth * devicePixelRatio - window.innerWidth /* sidebar width */",
+  "window.outerHeight * devicePixelRatio - window.innerHeight /* browser chrome height */",
   "window.screen.width",
   "window.screen.height",
   "window.screen.availWidth",
