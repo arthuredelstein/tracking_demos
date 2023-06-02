@@ -4,10 +4,42 @@
     <title>Screen dimensions demo</title>
     <meta charset="utf8"/>
     <link rel="icon" href="data:,">
+    <style>
+
+     #container {
+       width: 100%;
+       height: 100%;
+       display: flex;
+       align-items: stretch;
+       position: absolute;
+     }
+     @media (orientation: landscape) {
+       #container {
+         flex-direction: row;
+       }
+     }
+     @media (orientation: portrait) {
+       #container {
+         flex-direction: column;
+       }
+     }
+     #topDiv {
+       flex: 1;
+       overflow-y: scroll;
+     }
+     #iframe {
+       flex: 1;
+     }
+    </style>
   </head>
   <body>
-    <div id="result"></div>
-    <div id="mouseResult"></div>
+    <div id="container">
+      <div id="topDiv">
+        <div id="result"></div>
+        <div id="mouseResult"></div>
+      </div>
+      <iframe id="iframe" src="screen-inner.html"></iframe>
+    </div>
     <script src="screen.js"></script>
   </body>
 </html>
