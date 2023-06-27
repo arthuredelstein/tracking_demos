@@ -1,1 +1,2 @@
-document.cookie = `test=${Math.random.slice(2).toString()}; max-age=10000`;
+const digits = Math.random().toString().substring(2);
+document.cookie = `test=${digits}; max-age=10000`;
